@@ -4,20 +4,31 @@ let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
 let mesh: THREE.Mesh;
+let raycaster: THREE.Raycaster;
+
+let mouse = new THREE.Vector2();
+
+let light1:THREE.PointLight;
 
 function init(): void {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 10, 1000);
+  raycaster = new THREE.Raycaster();
   camera.position.z = 800;
   let texture = new THREE.TextureLoader().load('textures/crate.gif');
   let geometry = new THREE.SphereBufferGeometry(200, 100, 100);
   // let geometry = new THREE.BoxBufferGeometry(200, 200, 200);
-  let material = new THREE.MeshBasicMaterial({ map: texture });
+  // let material = new THREE.MeshBasicMaterial({ map: texture });
+  let material = new THREE.MeshLambertMaterial( { color: 0x2194CE } );
   mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  light1 = new THREE.PointLight( 0xff0040, 10, 2000 );
+  scene.add( light1 );
+  light1.position.set(100, 0, 300);
 
   document.body.appendChild(renderer.domElement);
   window.addEventListener('resize', onWindowResize, false);
@@ -32,6 +43,8 @@ function onWindowResize() {
 
 let lastX:any, lastY:any;
 function onMouseMove(e:MouseEvent) {
+  mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
   if (e.buttons != 1) {
     lastX = undefined;
     lastY = undefined;
@@ -49,6 +62,12 @@ function onMouseMove(e:MouseEvent) {
 
 function animate(): void {
   requestAnimationFrame(animate);
+  raycaster.setFromCamera( mouse, camera );
+  let intersects = raycaster.intersectObjects( scene.children );
+  for (let i = 0; i < intersects.length; i++) {
+    intersects[i].object.scale.x *= 1.001;
+  }
+
   renderer.render(scene, camera);
 }
 
